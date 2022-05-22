@@ -20,10 +20,10 @@ public class Main {
 
         switch (operation) {
             case "-list" -> todo.printAllTasks();
-            case "-help" -> todo.instructions();
             case "-add" -> todo.addTodoTask(task.toString().trim());
             case "-complete" -> todo.completeTodoTask(task.toString().trim());
             case "-delete" -> todo.deleteTodoTask(task.toString().trim());
+            default -> todo.instructions();
         }
     }
 }
