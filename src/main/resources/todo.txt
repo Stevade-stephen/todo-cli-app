@@ -1,0 +1,2 @@
+1. Read SQL*
+2. Read Deployment to Heroku
