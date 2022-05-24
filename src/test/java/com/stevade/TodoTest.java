@@ -3,8 +3,6 @@ package com.stevade;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 import java.util.List;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
@@ -16,9 +14,9 @@ class TodoTest {
     StringBuilder tasksInFile;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp(){
         tasksInFile = new StringBuilder();
-        allTodos = underTest.getAllTodos();
+        allTodos = underTest.allTodoTasksList;
         allTodos.forEach(task -> tasksInFile.append("\n").append(task));
     }
 
@@ -51,8 +49,7 @@ class TodoTest {
     @Test
     void deleteTodoTask() throws Exception {
         String result = "Task deleted successfully\n";
-        String text = tapSystemOut(() -> underTest.deleteTodoTask("2"));
+        String text = tapSystemOut(() -> underTest.deleteTodoTask("3"));
         assertThat(text).isEqualTo(result);
-        assertThat(allTodos.size() - 1).isEqualTo(underTest.getAllTodos().size());
     }
 }

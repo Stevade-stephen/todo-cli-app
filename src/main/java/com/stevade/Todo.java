@@ -2,80 +2,72 @@ package com.stevade;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class Todo {
+public class Todo implements TodoService, FileOperations {
+    List<String> allTodoTasksList;
 
-    public void printAllTasks() throws IOException {
-        System.out.println("List of Todo tasks: ");
-        List<String> allTodos = allTodos();
-
-        if(allTodos.isEmpty()){
-            System.out.println("Please add new tasks, your todo list is empty");
+    {
+        try {
+            allTodoTasksList = readAllTodoTasksFromFileToList();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        else allTodos.forEach(System.out::println);
     }
 
-    public void addTodoTask(String todoTask) throws IOException {
-        List<String> allTodos = allTodos();
+    @Override
+    public void printAllTasks() {
+        System.out.println("List of Todo tasks: ");
+        if (allTodoTasksList.isEmpty()) {
+            System.out.println("Please add new tasks, your todo list is empty");
+            return;
+        }
+        allTodoTasksList.forEach(System.out::println);
+    }
 
-        int serialNumber = allTodos.size() == 0 ? 1 : allTodos.size() + 1;
-
-        File file = new File("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt");
-        FileWriter fileWriter = new FileWriter(file, true);
-        fileWriter.write(serialNumber + ". " + todoTask +"\n");
-        fileWriter.flush();
-        fileWriter.close();
-
+    @Override
+    public void addTodoTask(String todoTask) throws Exception {
+        int serialNumber = allTodoTasksList.size() == 0 ? 1 : allTodoTasksList.size() + 1;
+        writeSingleTaskToFile(serialNumber + ". " + todoTask +"\n");
         System.out.println("Task: " + todoTask + " added successfully");
     }
 
-    public void deleteTodoTask(String todoNumber) throws IOException {
-        List<String> allTodos = allTodos();
+    @Override
+    public void deleteTodoTask(String todoNumber) throws Exception {
 
-        if(Integer.parseInt(todoNumber) > allTodos.size())
-            System.out.printf("Enter a valid task number to delete, there are %d tasks available%n", allTodos.size());
-
-        for (int i = 0; i < allTodos.size(); i++) {
-            if(allTodos.get(i).startsWith(todoNumber)) {
-                allTodos.remove(i);
-                break;
-            }
+        if(Integer.parseInt(todoNumber) > allTodoTasksList.size()) {
+            System.out.printf("Enter a valid task number to delete, there are %d tasks available%n", allTodoTasksList.size());
+            return;
         }
 
+        allTodoTasksList.removeIf(item -> item.startsWith(todoNumber));
 
-        Files.write(Path.of("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt"), allTodos);
+        writeListOfTasksToFile(allTodoTasksList);
+
         System.out.println("Task deleted successfully");
     }
 
-    public void completeTodoTask(String todoNumber) throws IOException {
-        List<String> allTodos = allTodos();
+    @Override
+    public void completeTodoTask(String todoNumber) throws Exception {
 
-        if(Integer.parseInt(todoNumber) > allTodos.size())
-            System.out.printf("Enter a valid task number to delete, there are %d tasks available%n", allTodos.size());
-
-        for (int i = 0; i < allTodos.size(); i++) {
-            if(allTodos.get(i).startsWith(todoNumber)) {
-                String completedTask = allTodos.get(i);
-                allTodos.set(i, completedTask + "*");
-                break;
-            }
+        if(Integer.parseInt(todoNumber) > allTodoTasksList.size()) {
+            System.out.printf("Enter a valid task number to delete, there are %d tasks available%n", allTodoTasksList.size());
+            return;
         }
 
-        Files.write(Path.of("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt"), allTodos);
+        List<String> completedTask = allTodoTasksList.stream()
+                .filter(task -> task.startsWith(todoNumber)).map(task -> task + "*").toList();
+        allTodoTasksList.set(Integer.parseInt(todoNumber) - 1, completedTask.get(0));
+
+        writeListOfTasksToFile(allTodoTasksList);
         System.out.println("Task marked as completed successfully");
     }
 
-    private List<String> allTodos() throws IOException {
-        return Files.readAllLines(Path.of("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt"));
-    }
 
-    public List<String> getAllTodos() throws IOException {
-        return allTodos();
+    public List<String> getAllTodos() throws Exception {
+        return readAllTodoTasksFromFileToList();
     }
 
     public void instructions() {
@@ -88,5 +80,24 @@ public class Todo {
             ------------------------------------------------------------------------------------
             """;
         System.out.println(instructions);
+    }
+
+    @Override
+    public List<String> readAllTodoTasksFromFileToList() throws Exception {
+        return Files.readAllLines(Path.of("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt"));
+    }
+
+    @Override
+    public void writeSingleTaskToFile(String todoTask) throws Exception {
+        File file = new File("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt");
+        FileWriter fileWriter = new FileWriter(file, true);
+        fileWriter.write(todoTask);
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
+    @Override
+    public void writeListOfTasksToFile(List<String> tasks) throws Exception {
+        Files.write(Path.of("/Users/mac/IdeaProjects/todo-cli-app/src/main/resources/todo.txt"), tasks);
     }
 }
